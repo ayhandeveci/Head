@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Çarkıfelek — Bahaneler (Ses + Palet + Kopyala + Haptic)</title>
+<title>Çarkıfelek — Toplantı Bahaneleri</title>
 <style>
   :root{--bg:#0f1220; --panel:#151a2d; --ink:#e9edf8; --muted:#9aa4c7;}
   *{box-sizing:border-box}
@@ -31,10 +31,6 @@
   button:hover{filter:brightness(1.06)}
   button:active{transform:translateY(1px)}
   button[disabled]{opacity:.55; cursor:not-allowed; filter:grayscale(.2) brightness(.9)}
-  select, input[type="text"]{
-    padding:10px 12px; border-radius:10px; border:1px solid #2b3a6b; background:#0c142c; color:#e9edf8;
-  }
-  label.switch{display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #2b3a6b; border-radius:12px; background:#0c142c; color:#e9edf8}
   .result{font-size:18px; font-weight:800; letter-spacing:.2px; padding:10px 14px; border-radius:12px; display:inline-block;
           background:linear-gradient(180deg,#18224a,#121a35); border:1px solid #2a3566; color:#dfe7ff}
   .hint{color:var(--muted); font-size:13px; margin-top:4px}
@@ -52,7 +48,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Çarkıfelek — Toplantı Bahaneleri</h1>
-      <p class="sub">Ses + titreşim + renk paleti + kopyala + kullanıcı listesi. “Çevir”e bas, tıkırtılar başlasın 🔊📳</p>
+      <p class="sub">Sade tasarım, akıllı metin yerleşimi, değişken hız ve “çap çap” ses 😊</p>
     </div>
 
     <div class="stage">
@@ -69,20 +65,8 @@
     <div class="controls">
       <button id="spinBtn">🎯 Çevir</button>
       <button id="reshuffleBtn" class="secondary" title="Dilimleri karıştır">🔀 Karıştır</button>
-      <select id="paletteSel" title="Renk paleti">
-        <option value="vivid">🎨 Vivid</option>
-        <option value="pastel">🌸 Pastel</option>
-        <option value="ocean">🌊 Ocean</option>
-        <option value="sunset">🌅 Sunset</option>
-        <option value="candy">🍬 Candy</option>
-        <option value="neon">⚡ Neon</option>
-        <option value="mono">⬤ Mono</option>
-      </select>
-      <label class="switch" title="Destekleyen cihazlarda titreşim">
-        <input id="vibeChk" type="checkbox" checked>
-        <span id="vibeLbl">Titreşim</span>
-      </label>
       <button id="copyBtn" class="secondary" title="Sonucu kopyala" disabled>📋 Sonucu Kopyala</button>
+      <button id="soundBtn" class="secondary" title="Tarayıcı sesi kilitliyse açmak için" style="display:none">🔊 Sesi Aç</button>
     </div>
 
     <div id="result" class="result" style="display:none;"></div>
@@ -95,46 +79,47 @@
         <div class="row">
           <button id="loadDefaultsBtn">📦 Varsayılanları Yükle</button>
           <button id="exportBtn" title="Mevcut listeyi panoya kopyala">⬇️ Dışa Aktar</button>
-          <span class="tag">Metinleri satır satır gir</span>
+          <span class="tag">Metinleri satır satır gir veya virgüllü/JSON liste yapıştır</span>
         </div>
         <textarea id="textArea" placeholder="Her satır bir seçenek olacak..."></textarea>
         <div class="row">
           <button id="applyBtn">✅ Uygula (Metinden Kur)</button>
           <button id="clearBtn">🧹 Temizle</button>
-        </div>
-        <div class="row">
           <input id="oneInput" placeholder="Tek bir seçenek ekle" style="flex:1">
           <button id="addOneBtn">➕ Ekle</button>
         </div>
       </div>
     </details>
 
-    <div class="hint">Liste tarayıcına kaydedilir (localStorage). GitHub Pages (HTTPS) üzerinde ses/titreşim uygun cihazlarda çalışır.</div>
+    <div class="hint">Ses çıkmıyorsa bir kez “Sesi Aç”a dokun—iOS/Safari ilk etkileşimde izin istiyor olabilir.</div>
   </div>
 
 <script>
-/* ======================= VARSAYILANLAR ======================= */
+/* ======================= VARSAYILANLAR (Teams havası) ======================= */
 const DEFAULTS = [
-  "Bunu offline konuşalım","Roadmap’e alalım","Bandwith’im yok şu an","Yönetim onayı bekliyoruz",
-  "Önce küçük bir POC yapalım","Önceliklendirelim / Backlog’a atalım","Circle back edelim","Park edelim (parking lot)",
-  "Maliyet/etki analizi yapalım","Veri yok / veri bekliyoruz","Takvimler çakıştı","Riskini değerlendirelim",
-  "Bu sprint’e yetişmez","Aksiyon maddesi açalım","SLA kapsamı dışında","Toplantıdan sonra dönüş yapayım"
+  "Sesim geliyor mu? Bir daha deneyeyim",
+  "Ekran dondu, 1 dk verin",
+  "Teams bende çöktü, geri geliyorum",
+  "Link eskiymiş galiba, yeniden katılayım",
+  "VPN yüzünden gecikme var",
+  "Bunu chat’e yazayım, detaylı dönüş yapayım",
+  "Not aldım, parking lot’a koyuyorum",
+  "Önce küçük bir POC yapalım",
+  "Roadmap’e alıp önceliklendirelim",
+  "Yönetim onayı lazım",
+  "Veri tarafını bekliyoruz",
+  "Aksiyon açıyorum, sahibi kim olsun?",
+  "Bu sprint’e yetişmez",
+  "Riskini değerlendirelim",
+  "SLA kapsamı dışında kalıyor",
+  "Toplantıdan sonra yazılı dönerim",
+  "Mikrofon bende sıkıntılı, dinlemedeyim",
+  "Kamera kapalı olsun, bağlantım zayıf",
+  "Kayıt alınıyor mu? Linkini paylaşalım",
+  "Bir sonraki toplantıda üstünden geçelim"
 ];
-const LS_KEY = "carki_options_v3";
+const LS_KEY = "carki_options_v4";
 let OPTIONS = [];
-
-/* ======================= PALETLER ======================= */
-const palettes = {
-  vivid: (i,n)=>`hsl(${Math.round((i*360)/n)}, 78%, 55%)`,
-  pastel:(i,n)=>`hsl(${Math.round((i*360)/n)}, 55%, 72%)`,
-  ocean: (i,n)=>`hsl(${200 + Math.round((i*60)/Math.max(1,n-1))}, 70%, 50%)`,
-  sunset:(i,n)=>`hsl(${10 + Math.round((i*70)/Math.max(1,n-1))}, 75%, 55%)`,
-  candy: (i,n)=>`hsl(${Math.round((i*360)/n)}, 85%, 65%)`,
-  neon:  (i,n)=>`hsl(${Math.round((i*360)/n)}, 95%, 55%)`,
-  mono:  (i,n)=>`hsl(230, ${40 + Math.round((i*40)/Math.max(1,n-1))}%, ${25 + Math.round((i*35)/Math.max(1,n-1))}%)`,
-};
-const LS_PALETTE_KEY = "carki_palette";
-let paletteKey = localStorage.getItem(LS_PALETTE_KEY) || "vivid";
 
 /* ======================= KANVAS ======================= */
 const canvas = document.getElementById("wheel");
@@ -153,28 +138,35 @@ function fitCanvas(){
 fitCanvas();
 window.addEventListener("resize", ()=>{ fitCanvas(); drawWheel(); });
 
-/* ======================= SES (WebAudio) ======================= */
+/* ======================= SES (WebAudio, iOS dostu) ======================= */
 let audioCtx = null;
+let audioUnlocked = false;
 function ensureAudio(){
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)({latencyHint:"interactive"});
+  if (audioCtx.state === "suspended") audioCtx.resume();
 }
-function tickSound(speedNorm=0.5){
-  // speedNorm: 0..1 (düşük→yüksek hız)
+function unlockAudio(){
   ensureAudio();
-  const dur = 0.035 + 0.02*speedNorm;      // hızlıyken biraz daha kısa/sert tık
+  audioUnlocked = true;
+  document.getElementById("soundBtn").style.display = "none";
+}
+// iOS/Safari için: ilk dokunuşta sesi açmayı dene
+["pointerdown","touchend","click"].forEach(ev=>{
+  document.addEventListener(ev, ()=>{ if(!audioUnlocked){ unlockAudio(); } }, {once:true, passive:true});
+});
+function tickSound(speedNorm=0.5){
+  ensureAudio();
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
 
-  const baseHz = 550;                       // temel tık frekansı
-  const freq = baseHz + speedNorm*250;      // hızla artan tiz
-  const t = audioCtx.currentTime;
+  const freq = 450 + speedNorm*300;        // hızlandıkça tizleşsin
+  const dur = 0.03 + 0.02*speedNorm;       // hızlıyken daha kısa “çap”
+  const vol = 0.10 + speedNorm*0.12;
 
   osc.type = "square";
   osc.frequency.setValueAtTime(freq, t);
-
-  const vol = 0.08 + speedNorm*0.15;        // hızlıyken biraz daha yüksek
   gain.gain.setValueAtTime(vol, t);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
@@ -183,41 +175,19 @@ function tickSound(speedNorm=0.5){
   osc.stop(t + dur);
 }
 
-/* ======================= HAPTIC (Titreşim) ======================= */
-const canVibrate = "vibrate" in navigator;
-const vibeChk = () => document.getElementById("vibeChk");
-const vibeEnabled = () => canVibrate && vibeChk()?.checked;
-
-function hapticTick(speedNorm=0.5){
-  if (!vibeEnabled()) return;
-  // 8–18 ms kısa titreşim: hız arttıkça biraz uzasın
-  const ms = Math.round(8 + speedNorm*10);
-  navigator.vibrate(ms);
-}
-function hapticFinal(){
-  if (!vibeEnabled()) return;
-  // küçük başarı paterni
-  navigator.vibrate([0, 20, 30, 30]);
-}
-
 /* ======================= DÖNDÜRME FİZİĞİ ======================= */
 let rotation = 0;      // rad
 let spinning = false;
-let angularVel = 0;    // rad/s (anlık)
+let angularVel = 0;    // rad/s
 let lastFrameTime = 0;
-
-function hslFromPalette(i,n){
-  const f = palettes[paletteKey] || palettes.vivid;
-  return f(i,n);
-}
 
 function drawWheel(highlightIndex=null){
   const W = canvas.width, H = canvas.height;
   const r = Math.min(W,H)/2 * 0.96;
   const cx = W/2, cy = H/2;
   const inner = r * 0.18;
-  const N = OPTIONS.length;
-  const dθ = (Math.PI*2)/Math.max(1,N);
+  const N = OPTIONS.length || 1;
+  const dθ = (Math.PI*2)/N;
 
   ctx.clearRect(0,0,W,H);
 
@@ -232,21 +202,21 @@ function drawWheel(highlightIndex=null){
     const a0=i*dθ, a1=a0+dθ;
     ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,a0,a1,false); ctx.closePath();
     if (highlightIndex===i){ ctx.fillStyle="rgba(255,255,255,.12)"; ctx.fill(); }
-    ctx.fillStyle=hslFromPalette(i,N);
+    // sade, ama canlı bir gökkuşağı paleti
+    ctx.fillStyle = `hsl(${Math.round((i*360)/N)}, ${N>10?72:78}%, ${N>10?56:60}%)`;
     ctx.fill();
     ctx.lineWidth=r*0.006; ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.stroke();
 
-    // text
+    // METİN: akıllı sığdırma (max 3 satır, auto font)
     ctx.save();
     ctx.rotate(a0 + dθ/2);
-    ctx.translate(r*0.68, 0);
+    ctx.translate(r*0.64, 0);     // metin yarıçapı
     ctx.rotate(Math.PI/2);
-    ctx.fillStyle="#0e1430";
     ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.font=`${Math.floor(r*0.085)}px system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial`;
-    fitWrappedText(OPTIONS[i], r*0.95 - inner);
+    drawSmartLabel(OPTIONS[i] || "", r, dθ);
     ctx.restore();
   }
+
   // merkez
   ctx.beginPath(); ctx.arc(0,0,inner,0,Math.PI*2);
   const grad = ctx.createRadialGradient(0,0,inner*0.2, 0,0,inner);
@@ -264,19 +234,49 @@ function drawWheel(highlightIndex=null){
   updateUIState();
 }
 
-// 2 satıra sığdır
-function fitWrappedText(text, maxWidth){
-  const words = text.split(" ");
-  let line="", lines=[];
-  for(const w of words){
-    const t=line?line+" "+w:w, m=ctx.measureText(t);
-    if(m.width<=maxWidth*0.52 || !line){ line=t; } else { lines.push(line); line=w; }
-    if(lines.length===2) break;
+// Akıllı label: 3 satıra kadar kır, fontu küçülterek sığdır
+function drawSmartLabel(text, r, dθ){
+  const maxLines = 3;
+  const textRadius = r*0.64;
+  const arcWidth = dθ * textRadius * 0.92;   // izinli yay uzunluğu
+  let fontPx = Math.floor(r*0.095);
+  let lines = [];
+
+  // dene-küçült: fontu azalt, 3 satıra sığdır
+  for (; fontPx >= Math.floor(r*0.05); fontPx--){
+    ctx.font = `${fontPx}px system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial`;
+    lines = wrapLines(text, arcWidth, maxLines);
+    if (lines.ok) break;
   }
-  if(line && lines.length<2) lines.push(line);
-  const lh = parseInt(ctx.font,10)*1.06, total=lh*lines.length;
-  let y=-total/2 + lh/2;
-  for(const ln of lines){ ctx.fillText(ln,0,y); y+=lh; }
+
+  ctx.fillStyle="#0e1430";
+  const lh = fontPx*1.08;
+  const startY = -((lines.arr.length-1)*lh)/2;
+  lines.arr.forEach((ln, i)=> ctx.fillText(ln, 0, startY + i*lh));
+}
+
+function wrapLines(text, maxW, maxL){
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const out=[]; let line="";
+  for (const w of words){
+    const test = line ? line + " " + w : w;
+    if (ctx.measureText(test).width <= maxW || !line){
+      line = test;
+    } else {
+      out.push(line); line = w;
+      if (out.length === maxL-1){
+        // son satır: sığmıyorsa kırp
+        let rest = line + " " + words.slice(words.indexOf(w)+1).join(" ");
+        while (ctx.measureText(rest + " …").width > maxW && rest.length>0){
+          rest = rest.slice(0,-1);
+        }
+        out.push(rest.trim() + (rest ? " …" : ""));
+        return {arr:out, ok:true};
+      }
+    }
+  }
+  if (line) out.push(line);
+  return {arr:out, ok:true};
 }
 
 const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
@@ -284,7 +284,7 @@ const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 function spinToRandom(){
   if (spinning || OPTIONS.length<2) return;
   spinning=true; setResult("");
-  ensureAudio(); // iOS/Android için kullanıcı etkileşimi anında kur
+  ensureAudio(); // iOS’ta ses için
 
   const N=OPTIONS.length, dθ=(Math.PI*2)/N;
   const targetIndex=ri(0,N-1);
@@ -294,20 +294,19 @@ function spinToRandom(){
   let delta=(-Math.PI/2 - base - targetAngle);
   delta=((delta%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
 
-  // değişken hız: tur sayısı, süre ve easing rastgele
-  const extraTurns=ri(5,8);
+  // değişken hız: tur sayısı, süre, easing her seferinde farklı
+  const extraTurns=ri(5,9);
   const finalRotation = rotation + delta + extraTurns*(Math.PI*2);
-  const duration = ri(3800,5600); // ms
+  const duration = ri(3600,5800); // ms
   const easeType = Math.random()<0.5 ? "quint" : "expo";
   const t0 = performance.now(); const startRot=rotation;
 
-  // tick algılaması
-  const dSeg = dθ;
+  // tick algısı
   let lastTickIndex = -1;
 
   function easeOutQuint(t){ return 1 - Math.pow(1-t, 5); }
   function easeOutExpo(t){ return t===1 ? 1 : 1 - Math.pow(2, -10*t); }
-  function ease(t){ return easeType==="quint" ? easeOutQuint(t) : easeOutExpo(t); }
+  const ease = (t)=> easeType==="quint" ? easeOutQuint(t) : easeOutExpo(t);
 
   function frame(now){
     const dt = (now - (lastFrameTime || now)) / 1000;
@@ -319,16 +318,15 @@ function spinToRandom(){
     rotation = newRot;
     drawWheel();
 
-    // hız normalizasyonu (0..1): ~0..20 rad/s aralığını ölçekle
+    // hız (0..1) normalize
     const speedNorm = Math.max(0, Math.min(1, angularVel / 20));
 
-    // imleç üstte sabit; altında kalan dilim indeksi değişince tick
+    // imleç -π/2; altında kalan dilim indeks değişince “çap”
     const pointerAngle = (-Math.PI/2 - rotation);
-    const idx = ((Math.floor(((pointerAngle % (Math.PI*2) + Math.PI*2) % (Math.PI*2)) / dSeg)) + N) % N;
+    const idx = ((Math.floor(((pointerAngle % (Math.PI*2) + Math.PI*2) % (Math.PI*2)) / dθ)) + N) % N;
 
     if (idx !== lastTickIndex){
       tickSound(speedNorm);
-      hapticTick(speedNorm);
       lastTickIndex = idx;
     }
 
@@ -339,7 +337,6 @@ function spinToRandom(){
       const idxFinal = targetIndex;
       drawWheel(idxFinal);
       setResult(OPTIONS[idxFinal]);
-      hapticFinal();
       spinning=false;
     }
   }
@@ -350,13 +347,15 @@ function spinToRandom(){
 const $ = sel => document.querySelector(sel);
 const $spin=$("#spinBtn"), $shuffle=$("#reshuffleBtn");
 const $ta=$("#textArea"), $count=$("#count"), $one=$("#oneInput");
-const $palette=$("#paletteSel"), $copy=$("#copyBtn"), $vibeLbl=$("#vibeLbl");
+const $copy=$("#copyBtn"), $sound=$("#soundBtn");
 
 function updateUIState(){
   $count.textContent = "Dilim sayısı: " + OPTIONS.length;
   $spin.disabled = OPTIONS.length<2;
   $shuffle.disabled = OPTIONS.length<2 || spinning;
   $copy.disabled = !$("#result").textContent;
+  // ses kilitli ise “Sesi Aç” göster
+  $sound.style.display = (audioCtx && audioCtx.state==="running") ? "none" : "inline-block";
 }
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(OPTIONS)); }catch{} }
 function loadLocal(){
@@ -366,14 +365,41 @@ function loadLocal(){
   }}catch{}
   return false;
 }
-function uniqueClean(arr){
-  return [...new Set(arr.map(s=>String(s).trim()).filter(Boolean))];
+function uniqueClean(arr){ return sanitizeTokens(arr); }
+
+// Gelişmiş yapıştırma ayrıştırıcısı
+function parseOptions(rawText){
+  if (!rawText) return [];
+  const t = rawText.trim();
+  if (t.startsWith("[") && t.endsWith("]")) {
+    try { const arr = JSON.parse(t); if (Array.isArray(arr)) return sanitizeTokens(arr); } catch {}
+  }
+  const hasNewlines = /\r?\n/.test(t);
+  let tokens = hasNewlines ? t.split(/\r?\n/) : t.split(/\s*[;,|]\s*/);
+  return sanitizeTokens(tokens);
 }
+function sanitizeTokens(tokens){
+  const cleaned = tokens
+    .map(s => String(s)
+      .replace(/^\s*(?:\d{1,4}[\)\.\-:]\s*|[-*•–]\s*)/, "")
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "")
+      .replace(/[.,;:、。؛،·]$/u, "")
+      .trim()
+    )
+    .filter(Boolean);
+  const seen = new Set(), out=[];
+  for (let item of cleaned){
+    if (item.length > 140) item = item.slice(0, 140).trim();
+    if (!seen.has(item)){ seen.add(item); out.push(item); }
+    if (out.length >= 200) break;
+  }
+  return out;
+}
+
 function loadDefaults(){ OPTIONS=[...DEFAULTS]; saveLocal(); rotation=0; setResult(""); drawWheel(); fillTextarea(); }
 function fillTextarea(){ $ta.value = OPTIONS.join("\n"); }
 function applyFromTextarea(){
-  const arr = $ta.value.split(/\r?\n/);
-  const cleaned = uniqueClean(arr);
+  const cleaned = parseOptions($ta.value);
   OPTIONS = cleaned.length ? cleaned : [];
   saveLocal(); rotation=0; setResult(""); drawWheel();
 }
@@ -406,35 +432,19 @@ $shuffle.addEventListener("click", ()=>{
   for(let i=OPTIONS.length-1;i>0;i--){ const j=ri(0,i); [OPTIONS[i],OPTIONS[j]]=[OPTIONS[j],OPTIONS[i]]; }
   rotation=0; setResult(""); saveLocal(); fillTextarea(); drawWheel();
 });
-$palette.value = paletteKey;
-$palette.addEventListener("change", ()=>{
-  paletteKey = $palette.value;
-  localStorage.setItem(LS_PALETTE_KEY, paletteKey);
-  drawWheel();
-});
-$("#copyBtn").addEventListener("click", ()=>{
+$copy.addEventListener("click", ()=>{
   const text = $("#result").textContent.replace(/^Seçilen:\s*/,"");
   if(!text) return;
   navigator.clipboard?.writeText(text).then(()=>{
-    const btn = $("#copyBtn");
-    const old = btn.textContent;
-    btn.textContent="✅ Kopyalandı";
-    setTimeout(()=>{ btn.textContent=old; }, 1200);
+    const old = $copy.textContent;
+    $copy.textContent="✅ Kopyalandı";
+    setTimeout(()=>{ $copy.textContent=old; }, 1200);
   });
 });
-document.getElementById("vibeChk").addEventListener("change", (e)=>{
-  if (e.target.checked && !canVibrate) {
-    alert("Cihaz/Tarayıcı titreşimi desteklemiyor (ör. iOS Safari).");
-  }
-});
+$sound.addEventListener("click", unlockAudio);
 
 /* ======================= BAŞLAT ======================= */
 (function init(){
-  // titreşim destek notu
-  if (!canVibrate) {
-    $vibeLbl.textContent = "Titreşim (destek yok)";
-    $vibeLbl.style.opacity = 0.6;
-  }
   const ok = loadLocal();
   if(!ok) OPTIONS=[...DEFAULTS];
   fillTextarea();
