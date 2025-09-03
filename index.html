@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Çarkıfelek — Bahaneler (Ses + Palet + Kopyala + Haptic)</title>
+<style>
+  :root{--bg:#0f1220; --panel:#151a2d; --ink:#e9edf8; --muted:#9aa4c7;}
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100svh; display:flex; align-items:center; justify-content:center;
+    font:500 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    color:var(--ink); background:radial-gradient(1200px 1200px at 50% -200px,#1a2040 0%, var(--bg) 55%, #0b0e1a 100%);
+  }
+  .wrap{width:min(94vw,960px); display:grid; gap:16px; justify-items:center; text-align:center}
+  .card{width:100%; padding:16px 18px; background:linear-gradient(180deg,#1b2141 0%, var(--panel) 100%);
+        border:1px solid #293058; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
+  h1{font-size:22px; margin:0 0 2px; letter-spacing:.2px}
+  p.sub{margin:0; color:var(--muted); font-size:14px}
+  .stage{position:relative; width:min(86vw,560px); aspect-ratio:1/1}
+  canvas{width:100%; height:100%; display:block; filter:drop-shadow(0 12px 22px rgba(0,0,0,.45))}
+  .pointer{position:absolute; inset:0; pointer-events:none; display:grid; place-items:start center}
+  .pointer svg{margin-top:-6px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+  .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center}
+  button{
+    appearance:none; border:1px solid #2c3a6a; background:linear-gradient(180deg,#27449a,#1e3475);
+    color:#fff; padding:11px 14px; border-radius:12px; font-weight:700; letter-spacing:.2px; cursor:pointer;
+    transition:transform .06s ease, filter .2s ease, opacity .2s ease;
+  }
+  button.secondary{background:linear-gradient(180deg,#313a66,#263156)}
+  button:hover{filter:brightness(1.06)}
+  button:active{transform:translateY(1px)}
+  button[disabled]{opacity:.55; cursor:not-allowed; filter:grayscale(.2) brightness(.9)}
+  select, input[type="text"]{
+    padding:10px 12px; border-radius:10px; border:1px solid #2b3a6b; background:#0c142c; color:#e9edf8;
+  }
+  label.switch{display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #2b3a6b; border-radius:12px; background:#0c142c; color:#e9edf8}
+  .result{font-size:18px; font-weight:800; letter-spacing:.2px; padding:10px 14px; border-radius:12px; display:inline-block;
+          background:linear-gradient(180deg,#18224a,#121a35); border:1px solid #2a3566; color:#dfe7ff}
+  .hint{color:var(--muted); font-size:13px; margin-top:4px}
+  .editor{width:100%; display:grid; gap:10px; text-align:left}
+  details{width:100%}
+  details>summary{cursor:pointer; padding:10px 12px; background:#121936; border:1px solid #253160; border-radius:10px; color:#dfe7ff}
+  .panel{padding:12px; background:#0f1630; border:1px solid #27336a; border-radius:10px; margin-top:8px}
+  textarea{width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:10px; border:1px solid #2b3a6b;
+           background:#0c142c; color:#e9edf8; font:500 14px/1.35 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .tag{font-size:12px; color:#9fb3ff; border:1px solid #2a3b76; padding:4px 8px; border-radius:999px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Çarkıfelek — Toplantı Bahaneleri</h1>
+      <p class="sub">Ses + titreşim + renk paleti + kopyala + kullanıcı listesi. “Çevir”e bas, tıkırtılar başlasın 🔊📳</p>
+    </div>
+
+    <div class="stage">
+      <canvas id="wheel" width="1200" height="1200" aria-label="Çarkıfelek"></canvas>
+      <div class="pointer" aria-hidden="true">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <path d="M21 4 L32 22 L10 22 Z" fill="url(#g)"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9d37d"/><stop offset="1" stop-color="#e4a93c"/></linearGradient></defs>
+          <circle cx="21" cy="25" r="5.5" fill="#0e1430" stroke="#e4a93c" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="spinBtn">🎯 Çevir</button>
+      <button id="reshuffleBtn" class="secondary" title="Dilimleri karıştır">🔀 Karıştır</button>
+      <select id="paletteSel" title="Renk paleti">
+        <option value="vivid">🎨 Vivid</option>
+        <option value="pastel">🌸 Pastel</option>
+        <option value="ocean">🌊 Ocean</option>
+        <option value="sunset">🌅 Sunset</option>
+        <option value="candy">🍬 Candy</option>
+        <option value="neon">⚡ Neon</option>
+        <option value="mono">⬤ Mono</option>
+      </select>
+      <label class="switch" title="Destekleyen cihazlarda titreşim">
+        <input id="vibeChk" type="checkbox" checked>
+        <span id="vibeLbl">Titreşim</span>
+      </label>
+      <button id="copyBtn" class="secondary" title="Sonucu kopyala" disabled>📋 Sonucu Kopyala</button>
+    </div>
+
+    <div id="result" class="result" style="display:none;"></div>
+    <div class="hint"><span id="count" class="tag">Dilim sayısı: –</span></div>
+
+    <!-- Kullanıcı düzenleme -->
+    <details>
+      <summary>✏️ Seçenekleri Düzenle / İçeri Aktar</summary>
+      <div class="panel editor">
+        <div class="row">
+          <button id="loadDefaultsBtn">📦 Varsayılanları Yükle</button>
+          <button id="exportBtn" title="Mevcut listeyi panoya kopyala">⬇️ Dışa Aktar</button>
+          <span class="tag">Metinleri satır satır gir</span>
+        </div>
+        <textarea id="textArea" placeholder="Her satır bir seçenek olacak..."></textarea>
+        <div class="row">
+          <button id="applyBtn">✅ Uygula (Metinden Kur)</button>
+          <button id="clearBtn">🧹 Temizle</button>
+        </div>
+        <div class="row">
+          <input id="oneInput" placeholder="Tek bir seçenek ekle" style="flex:1">
+          <button id="addOneBtn">➕ Ekle</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="hint">Liste tarayıcına kaydedilir (localStorage). GitHub Pages (HTTPS) üzerinde ses/titreşim uygun cihazlarda çalışır.</div>
+  </div>
+
+<script>
+/* ======================= VARSAYILANLAR ======================= */
+const DEFAULTS = [
+  "Bunu offline konuşalım","Roadmap’e alalım","Bandwith’im yok şu an","Yönetim onayı bekliyoruz",
+  "Önce küçük bir POC yapalım","Önceliklendirelim / Backlog’a atalım","Circle back edelim","Park edelim (parking lot)",
+  "Maliyet/etki analizi yapalım","Veri yok / veri bekliyoruz","Takvimler çakıştı","Riskini değerlendirelim",
+  "Bu sprint’e yetişmez","Aksiyon maddesi açalım","SLA kapsamı dışında","Toplantıdan sonra dönüş yapayım"
+];
+const LS_KEY = "carki_options_v3";
+let OPTIONS = [];
+
+/* ======================= PALETLER ======================= */
+const palettes = {
+  vivid: (i,n)=>`hsl(${Math.round((i*360)/n)}, 78%, 55%)`,
+  pastel:(i,n)=>`hsl(${Math.round((i*360)/n)}, 55%, 72%)`,
+  ocean: (i,n)=>`hsl(${200 + Math.round((i*60)/Math.max(1,n-1))}, 70%, 50%)`,
+  sunset:(i,n)=>`hsl(${10 + Math.round((i*70)/Math.max(1,n-1))}, 75%, 55%)`,
+  candy: (i,n)=>`hsl(${Math.round((i*360)/n)}, 85%, 65%)`,
+  neon:  (i,n)=>`hsl(${Math.round((i*360)/n)}, 95%, 55%)`,
+  mono:  (i,n)=>`hsl(230, ${40 + Math.round((i*40)/Math.max(1,n-1))}%, ${25 + Math.round((i*35)/Math.max(1,n-1))}%)`,
+};
+const LS_PALETTE_KEY = "carki_palette";
+let paletteKey = localStorage.getItem(LS_PALETTE_KEY) || "vivid";
+
+/* ======================= KANVAS ======================= */
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+let sizeCSS;
+function fitCanvas(){
+  const holder = document.querySelector(".stage");
+  const rect = holder.getBoundingClientRect();
+  sizeCSS = Math.floor(Math.min(rect.width, rect.height));
+  canvas.style.width = sizeCSS + "px";
+  canvas.style.height = sizeCSS + "px";
+  canvas.width = Math.floor(sizeCSS * DPR);
+  canvas.height = Math.floor(sizeCSS * DPR);
+}
+fitCanvas();
+window.addEventListener("resize", ()=>{ fitCanvas(); drawWheel(); });
+
+/* ======================= SES (WebAudio) ======================= */
+let audioCtx = null;
+function ensureAudio(){
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+function tickSound(speedNorm=0.5){
+  // speedNorm: 0..1 (düşük→yüksek hız)
+  ensureAudio();
+  const dur = 0.035 + 0.02*speedNorm;      // hızlıyken biraz daha kısa/sert tık
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  const baseHz = 550;                       // temel tık frekansı
+  const freq = baseHz + speedNorm*250;      // hızla artan tiz
+  const t = audioCtx.currentTime;
+
+  osc.type = "square";
+  osc.frequency.setValueAtTime(freq, t);
+
+  const vol = 0.08 + speedNorm*0.15;        // hızlıyken biraz daha yüksek
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + dur);
+}
+
+/* ======================= HAPTIC (Titreşim) ======================= */
+const canVibrate = "vibrate" in navigator;
+const vibeChk = () => document.getElementById("vibeChk");
+const vibeEnabled = () => canVibrate && vibeChk()?.checked;
+
+function hapticTick(speedNorm=0.5){
+  if (!vibeEnabled()) return;
+  // 8–18 ms kısa titreşim: hız arttıkça biraz uzasın
+  const ms = Math.round(8 + speedNorm*10);
+  navigator.vibrate(ms);
+}
+function hapticFinal(){
+  if (!vibeEnabled()) return;
+  // küçük başarı paterni
+  navigator.vibrate([0, 20, 30, 30]);
+}
+
+/* ======================= DÖNDÜRME FİZİĞİ ======================= */
+let rotation = 0;      // rad
+let spinning = false;
+let angularVel = 0;    // rad/s (anlık)
+let lastFrameTime = 0;
+
+function hslFromPalette(i,n){
+  const f = palettes[paletteKey] || palettes.vivid;
+  return f(i,n);
+}
+
+function drawWheel(highlightIndex=null){
+  const W = canvas.width, H = canvas.height;
+  const r = Math.min(W,H)/2 * 0.96;
+  const cx = W/2, cy = H/2;
+  const inner = r * 0.18;
+  const N = OPTIONS.length;
+  const dθ = (Math.PI*2)/Math.max(1,N);
+
+  ctx.clearRect(0,0,W,H);
+
+  // halo
+  ctx.save(); ctx.translate(cx,cy); ctx.filter="blur(18px)";
+  ctx.beginPath(); ctx.arc(0,0,r*0.98,0,Math.PI*2); ctx.fillStyle="#0a0f27"; ctx.fill();
+  ctx.restore(); ctx.filter="none";
+
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rotation);
+
+  for(let i=0;i<N;i++){
+    const a0=i*dθ, a1=a0+dθ;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,a0,a1,false); ctx.closePath();
+    if (highlightIndex===i){ ctx.fillStyle="rgba(255,255,255,.12)"; ctx.fill(); }
+    ctx.fillStyle=hslFromPalette(i,N);
+    ctx.fill();
+    ctx.lineWidth=r*0.006; ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.stroke();
+
+    // text
+    ctx.save();
+    ctx.rotate(a0 + dθ/2);
+    ctx.translate(r*0.68, 0);
+    ctx.rotate(Math.PI/2);
+    ctx.fillStyle="#0e1430";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.font=`${Math.floor(r*0.085)}px system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial`;
+    fitWrappedText(OPTIONS[i], r*0.95 - inner);
+    ctx.restore();
+  }
+  // merkez
+  ctx.beginPath(); ctx.arc(0,0,inner,0,Math.PI*2);
+  const grad = ctx.createRadialGradient(0,0,inner*0.2, 0,0,inner);
+  grad.addColorStop(0,"#0e1430"); grad.addColorStop(1,"#101736");
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.lineWidth=r*0.012; ctx.strokeStyle="#24305e"; ctx.stroke();
+  ctx.fillStyle="#93a5ff"; ctx.font=`600 ${Math.floor(inner*0.38)}px system-ui,-apple-system`;
+  ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("ÇARK",0,0);
+  ctx.restore();
+
+  // dış çerçeve
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.lineWidth=r*0.015; ctx.strokeStyle="#2f3a70"; ctx.stroke();
+
+  updateUIState();
+}
+
+// 2 satıra sığdır
+function fitWrappedText(text, maxWidth){
+  const words = text.split(" ");
+  let line="", lines=[];
+  for(const w of words){
+    const t=line?line+" "+w:w, m=ctx.measureText(t);
+    if(m.width<=maxWidth*0.52 || !line){ line=t; } else { lines.push(line); line=w; }
+    if(lines.length===2) break;
+  }
+  if(line && lines.length<2) lines.push(line);
+  const lh = parseInt(ctx.font,10)*1.06, total=lh*lines.length;
+  let y=-total/2 + lh/2;
+  for(const ln of lines){ ctx.fillText(ln,0,y); y+=lh; }
+}
+
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+function spinToRandom(){
+  if (spinning || OPTIONS.length<2) return;
+  spinning=true; setResult("");
+  ensureAudio(); // iOS/Android için kullanıcı etkileşimi anında kur
+
+  const N=OPTIONS.length, dθ=(Math.PI*2)/N;
+  const targetIndex=ri(0,N-1);
+  const targetAngle=targetIndex*dθ + dθ/2;
+
+  const base=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  let delta=(-Math.PI/2 - base - targetAngle);
+  delta=((delta%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+
+  // değişken hız: tur sayısı, süre ve easing rastgele
+  const extraTurns=ri(5,8);
+  const finalRotation = rotation + delta + extraTurns*(Math.PI*2);
+  const duration = ri(3800,5600); // ms
+  const easeType = Math.random()<0.5 ? "quint" : "expo";
+  const t0 = performance.now(); const startRot=rotation;
+
+  // tick algılaması
+  const dSeg = dθ;
+  let lastTickIndex = -1;
+
+  function easeOutQuint(t){ return 1 - Math.pow(1-t, 5); }
+  function easeOutExpo(t){ return t===1 ? 1 : 1 - Math.pow(2, -10*t); }
+  function ease(t){ return easeType==="quint" ? easeOutQuint(t) : easeOutExpo(t); }
+
+  function frame(now){
+    const dt = (now - (lastFrameTime || now)) / 1000;
+    lastFrameTime = now;
+
+    const p=Math.min(1,(now-t0)/duration), e=ease(p);
+    const newRot = startRot + (finalRotation - startRot)*e;
+    angularVel = Math.abs(newRot - rotation) / Math.max(dt, 1/240); // rad/s
+    rotation = newRot;
+    drawWheel();
+
+    // hız normalizasyonu (0..1): ~0..20 rad/s aralığını ölçekle
+    const speedNorm = Math.max(0, Math.min(1, angularVel / 20));
+
+    // imleç üstte sabit; altında kalan dilim indeksi değişince tick
+    const pointerAngle = (-Math.PI/2 - rotation);
+    const idx = ((Math.floor(((pointerAngle % (Math.PI*2) + Math.PI*2) % (Math.PI*2)) / dSeg)) + N) % N;
+
+    if (idx !== lastTickIndex){
+      tickSound(speedNorm);
+      hapticTick(speedNorm);
+      lastTickIndex = idx;
+    }
+
+    if (p < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      rotation = finalRotation % (Math.PI*2);
+      const idxFinal = targetIndex;
+      drawWheel(idxFinal);
+      setResult(OPTIONS[idxFinal]);
+      hapticFinal();
+      spinning=false;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ======================= LİSTE / UI ======================= */
+const $ = sel => document.querySelector(sel);
+const $spin=$("#spinBtn"), $shuffle=$("#reshuffleBtn");
+const $ta=$("#textArea"), $count=$("#count"), $one=$("#oneInput");
+const $palette=$("#paletteSel"), $copy=$("#copyBtn"), $vibeLbl=$("#vibeLbl");
+
+function updateUIState(){
+  $count.textContent = "Dilim sayısı: " + OPTIONS.length;
+  $spin.disabled = OPTIONS.length<2;
+  $shuffle.disabled = OPTIONS.length<2 || spinning;
+  $copy.disabled = !$("#result").textContent;
+}
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(OPTIONS)); }catch{} }
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length){ OPTIONS=[...uniqueClean(arr)]; return true; }
+  }}catch{}
+  return false;
+}
+function uniqueClean(arr){
+  return [...new Set(arr.map(s=>String(s).trim()).filter(Boolean))];
+}
+function loadDefaults(){ OPTIONS=[...DEFAULTS]; saveLocal(); rotation=0; setResult(""); drawWheel(); fillTextarea(); }
+function fillTextarea(){ $ta.value = OPTIONS.join("\n"); }
+function applyFromTextarea(){
+  const arr = $ta.value.split(/\r?\n/);
+  const cleaned = uniqueClean(arr);
+  OPTIONS = cleaned.length ? cleaned : [];
+  saveLocal(); rotation=0; setResult(""); drawWheel();
+}
+function addOne(){
+  const v = ($one.value||"").trim(); if(!v) return;
+  if(!OPTIONS.includes(v)) OPTIONS.push(v);
+  $one.value=""; saveLocal(); fillTextarea(); drawWheel();
+}
+function exportList(){
+  const txt = OPTIONS.join("\n");
+  navigator.clipboard?.writeText(txt).then(()=>{ alert("Mevcut liste panoya kopyalandı."); })
+  .catch(()=>{ prompt("Kopyalamak için Ctrl/Cmd+C:", txt); });
+}
+function clearList(){ OPTIONS=[]; saveLocal(); fillTextarea(); drawWheel(); }
+function setResult(txt){
+  const el=$("#result");
+  if(!txt){ el.style.display="none"; el.textContent=""; updateUIState(); return; }
+  el.textContent="Seçilen: "+txt; el.style.display="inline-block"; updateUIState();
+}
+
+/* ======================= OLAYLAR ======================= */
+$("#loadDefaultsBtn").addEventListener("click", loadDefaults);
+$("#applyBtn").addEventListener("click", applyFromTextarea);
+$("#clearBtn").addEventListener("click", clearList);
+$("#addOneBtn").addEventListener("click", addOne);
+$("#exportBtn").addEventListener("click", exportList);
+$spin.addEventListener("click", spinToRandom);
+$shuffle.addEventListener("click", ()=>{
+  if(spinning || OPTIONS.length<2) return;
+  for(let i=OPTIONS.length-1;i>0;i--){ const j=ri(0,i); [OPTIONS[i],OPTIONS[j]]=[OPTIONS[j],OPTIONS[i]]; }
+  rotation=0; setResult(""); saveLocal(); fillTextarea(); drawWheel();
+});
+$palette.value = paletteKey;
+$palette.addEventListener("change", ()=>{
+  paletteKey = $palette.value;
+  localStorage.setItem(LS_PALETTE_KEY, paletteKey);
+  drawWheel();
+});
+$("#copyBtn").addEventListener("click", ()=>{
+  const text = $("#result").textContent.replace(/^Seçilen:\s*/,"");
+  if(!text) return;
+  navigator.clipboard?.writeText(text).then(()=>{
+    const btn = $("#copyBtn");
+    const old = btn.textContent;
+    btn.textContent="✅ Kopyalandı";
+    setTimeout(()=>{ btn.textContent=old; }, 1200);
+  });
+});
+document.getElementById("vibeChk").addEventListener("change", (e)=>{
+  if (e.target.checked && !canVibrate) {
+    alert("Cihaz/Tarayıcı titreşimi desteklemiyor (ör. iOS Safari).");
+  }
+});
+
+/* ======================= BAŞLAT ======================= */
+(function init(){
+  // titreşim destek notu
+  if (!canVibrate) {
+    $vibeLbl.textContent = "Titreşim (destek yok)";
+    $vibeLbl.style.opacity = 0.6;
+  }
+  const ok = loadLocal();
+  if(!ok) OPTIONS=[...DEFAULTS];
+  fillTextarea();
+  drawWheel();
+})();
+</script>
+</body>
+</html>
